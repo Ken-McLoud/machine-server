@@ -8,6 +8,32 @@ from datetime import datetime
 def index():
     return render_template('index.html',title='Home Page')
 
+@app.route('/dash')
+def dash():
+    return render_template('dash.html',title='Dashboard',
+                           cell='American Shotgun')
+
+
+@app.route('/toolsetter')
+def toolsetter():
+    tool_need={}
+    tool_need['mach1']='t1,t2,t3'
+    tool_need['mach2']='t2,t3,t4'
+    tool_need['mach3']='t3,t4,t5'
+    return render_template('toolsetter.html',title='Tool Setter',
+                           cell='American Shotgun',
+                           needed=tool_need)
+
+@app.route('/logs')
+def logs():
+    return render_template('logs.html',title='Logs',
+                           cell='American Shotgun')
+
+@app.route('/settings')
+def settings():
+    return render_template('settings.html',title='Settings',
+                           cell='American Shotgun')
+
 @app.route('/submit_data', methods=['GET','POST'])
 def submit_data():
     if request.method == 'GET':

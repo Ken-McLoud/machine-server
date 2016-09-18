@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %} 
+  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <h1 class="page-header">Tool Setting</h2>
+    <h4 class="sub-header">These tools will need to be changed at the next break</h4>
+    <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Machine</th>
+          <th style="width:80%">Tools to change</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mach in needed: %}
+          <tr>
+            <td>{{mach}}</td>
+            <td>{{needed[mach]}}</td>
+          </tr>
+        {% endfor %}        
+      </tbody>
+    </table>
+  </div>
+{%endblock %}
