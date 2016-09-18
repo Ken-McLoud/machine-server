@@ -3,6 +3,7 @@ from flask import request
 from flask import render_template
 from app import db, models
 from datetime import datetime
+from chk_tools import check_tools
 
 @app.route('/')
 def index():
@@ -16,13 +17,10 @@ def dash():
 
 @app.route('/toolsetter')
 def toolsetter():
-    tool_need={}
-    tool_need['mach1']='t1,t2,t3'
-    tool_need['mach2']='t2,t3,t4'
-    tool_need['mach3']='t3,t4,t5'
+    
     return render_template('toolsetter.html',title='Tool Setter',
                            cell='American Shotgun',
-                           needed=tool_need)
+                           needed=check_tools(models,False))
 
 @app.route('/logs')
 def logs():
