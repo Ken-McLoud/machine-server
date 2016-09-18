@@ -74,7 +74,7 @@ def check_tools(models,debug):
     for i in range(len(wrk_prd)):
         hr_aft_st=now[0]>=wrk_prd[i][0][0]
         min_aft_st=now[1]>wrk_prd[i][0][1]
-        after_start = hr_aft_st and min_aft_start
+        after_start = hr_aft_st and min_aft_st
         #accound for end of final work period
         if i==len(wrk_prd)-1:
             j=i

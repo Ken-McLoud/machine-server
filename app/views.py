@@ -4,6 +4,7 @@ from flask import render_template
 from app import db, models
 from datetime import datetime
 from chk_tools import check_tools
+from .forms import SettingsForm
 
 @app.route('/')
 def index():
@@ -17,7 +18,7 @@ def dash():
 
 @app.route('/toolsetter')
 def toolsetter():
-    
+ 
     return render_template('toolsetter.html',title='Tool Setter',
                            cell='American Shotgun',
                            needed=check_tools(models,False))
@@ -27,10 +28,21 @@ def logs():
     return render_template('logs.html',title='Logs',
                            cell='American Shotgun')
 
-@app.route('/settings')
-def settings():
-    return render_template('settings.html',title='Settings',
-                           cell='American Shotgun')
+@app.route('/mach_settings')
+def mach_settings():
+    machs = models.machines.query.all()
+    #set_form = SettingsForm()
+    return render_template('mach_settings.html',title='Machine Settings',
+                           cell='American Shotgun',
+                           m=machs)
+
+@app.route('/cell_settings')
+def cell_settings():
+    cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
+    #set_form = SettingsForm()
+    return render_template('cell_settings.html',title='Cell Settings',
+                           cell='American Shotgun',
+                           c=cell)
 
 @app.route('/submit_data', methods=['GET','POST'])
 def submit_data():

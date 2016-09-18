@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}   
+  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <h1 class="page-header">Settings</h2>
+    <h2 class="section-header">Machines</h2>  
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <tbody>
+            {% for mach in m: %}        
+              <tr>
+                <td><h4>{{mach.name}}</h4></td>
+                <td>
+                  <a class="btn btn-info" href="#" role="button">Edit</a>
+                </td>
+                <td>
+                  <a class="btn btn-danger" href="#" role="button">Remove</a>
+                </td>
+              </tr>
+            {% endfor %}                 
+          </tbody>
+        </table>
+        <a class="btn btn-primary" href="#" role="button">Add New Machine</a>
+      </div>
+      &nbsp
+      &nbsp
+
+  </div>
+{%endblock %}

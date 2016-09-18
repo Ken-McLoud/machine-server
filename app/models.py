@@ -16,6 +16,7 @@ class machines(db.Model):
     name = db.Column(db.String(256),index=True) #display name
     ident = db.Column(db.String(256),index=True)#computer friendly name
     
+    
     def __repr__(self):
         return '< Machine: '+self.name+' >'
 
