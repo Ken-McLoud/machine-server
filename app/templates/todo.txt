@@ -1,0 +1,6 @@
+remove confirm
+add/edit machine
+add/edit shift
+add/edit break
+turn name/takt into form on settings page
+

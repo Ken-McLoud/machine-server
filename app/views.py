@@ -4,7 +4,7 @@ from flask import render_template
 from app import db, models
 from datetime import datetime
 from chk_tools import check_tools
-from .forms import SettingsForm
+from .forms import Cell_info_form, Shift_info_form, Break_info_form
 
 @app.route('/')
 def index():
@@ -39,10 +39,19 @@ def mach_settings():
 @app.route('/cell_settings')
 def cell_settings():
     cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
-    #set_form = SettingsForm()
+    cell_info = Cell_info_form()
+    shift_info = []
+    break_info= []
+    for shift in cell.shifts:
+        shift_info.append(Shift_info_form())
+        sh_breaks=[]
+        for brk in shift['breaks']:
+            sh_breaks.append(Break_info_form())
+        break_info.append(sh_breaks)
     return render_template('cell_settings.html',title='Cell Settings',
                            cell='American Shotgun',
-                           c=cell)
+                           c=cell,cell_form=cell_info,shift_form=shift_info,
+                           brk_info=break_info)
 
 @app.route('/submit_data', methods=['GET','POST'])
 def submit_data():

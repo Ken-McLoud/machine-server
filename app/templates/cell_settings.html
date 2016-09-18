@@ -2,47 +2,44 @@
 {% block content %}   
   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
       <h2 class="page-header">Cell Info</h2>
-      <p>
-        <h3>
-          Cell Name: {{c.name}}
-          <a class="btn btn-info" href="#" style:"float:right" role="button">
-            Edit
-          </a>
-        </h3>
-      </p>
-      <p>
-        <h3>
-          Takt Time: {{c.takt}}
-            <a class="btn btn-info" href="#" style:"float:right" role="button">
-              Edit
-            </a>
-          </h3>
-        </p>
+      <form action="#" method="post" name="cell info">
+          <p>
+            <h3>
+              Cell Name: {{cell_form.cell_name(size=20, value=c.name)}}
+            </h3>
+          </p>
+          <p>
+            <h3>
+              Takt Time: {{cell_form.cell_takt(size=5,value=c.takt)}} sec.            
+            </h3>
+          </p>
+          <input class="btn btn-primary" type="submit" value="Submit">
+      </form>
       <br>
       <br>
+      
       {% for shift in c.shifts: %}
-        <div style="border:5px #4c4c4c">
+        <div style="border:5px solid grey; padding:25px; border-radius:25px">
         <h3 class="page-header">
           Shift #{{c.shifts.index(shift)+1}}
+          <a class="btn btn-primary" href="#" style:"float:right" role="button">
+            Submit
+          </a>
           <a class="btn btn-danger" href="#" role="button" style="align:right">
             Remove
           </a>
         </h3>
         <p>
           <h4>
-            Start: {{shift['start']}}
-            <a class="btn btn-info" href="#" style:"float:right" role="button">
-              Edit
-            </a>
+            Start:{{shift_form[c.shifts.index(shift)].start(size=5,value=shift['start'])}}
           </h4>
         </p>
         <table class="table table-striped">
           <thead>
             <tr>
-              <th><a class="btn btn-primary" href="#" role="button">Add New Break</a></th>
+              <th><a class="btn btn-info" href="#" role="button">Add New Break</a></th>
               <th>Start</th>
               <th>End</th>
-              <th></th>
               <th></th>
             </tr>
           </thead>
@@ -50,9 +47,8 @@
             {% for break in shift['breaks']: %}
               <tr>
                 <td><h4>Break #{{shift['breaks'].index(break)+1}}</h4></td>
-                <td>{{break[0]}}</td>
-                <td>{{break[1]}}</td>
-                <td><a class="btn btn-info" href="#" role="button">Edit</a></td>
+                <td>{{brk_info[c.shifts.index(shift)][shift['breaks'].index(break)].start(size=5,value=break[0])}}</td>
+                <td>{{brk_info[c.shifts.index(shift)][shift['breaks'].index(break)].end(size=5,value=break[1])}}</td>
                 <td><a class="btn btn-danger" href="#" role="button">Remove</a></td>
               </tr>
             {% endfor %}        
@@ -60,10 +56,7 @@
         </table>
         <p>
           <h4>
-            End: {{shift['end']}}
-            <a class="btn btn-info" href="#" style:"float:right" role="button">
-              Edit
-            </a>
+            End: {{shift_form[c.shifts.index(shift)].end(size=5,value=shift['end'])}}
           </h4>
         </p>
         </div>
@@ -73,7 +66,7 @@
         <br>
         
       {% endfor %}
-      <a class="btn btn-primary" href="#" role="button">Add New Shift</a>
+      <a class="btn btn-info" href="#" role="button">Add New Shift</a>
     
   </div>
 {%endblock %}
