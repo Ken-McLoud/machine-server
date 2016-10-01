@@ -4,8 +4,6 @@ from flask import render_template
 from app import db, models
 from datetime import datetime
 from chk_tools import check_tools
-from wtforms import Form,FormField
-from .forms import Cell_info_form, Shift_info_form, Break_info_form, Cell_frm
 from util_funcs import check_cell_info
 
 
@@ -33,108 +31,29 @@ def logs():
 
 @app.route('/mach_settings')
 def mach_settings():
-    machs = models.machines.query.all()
-    #set_form = SettingsForm()
+    machs = models.machines.query.all()   
     return render_template('mach_settings.html',title='Machine Settings',
                            cell='American Shotgun',
                            m=machs)
 
-@app.route('/cell_settings')
+@app.route('/cell_settings', methods=['GET','POST'])
 def cell_settings():
-    cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
-        
-    return render_template('cell_settings.html',title='Cell Settings',
-                           cell='American Shotgun',
-                           c=cell)
-
-
-@app.route('/change_shift')
-def change_shift():
-    if request.args.get('cmd')=='add':        
+    if request.method == 'GET':
         cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
-        if len(cell.shifts)<1:
-            new_shifts=[{'start':'00:00','breaks':[],'end':'00:00'}]
-        else:
-            prev_end=cell.shifts[-1]['end']
-            cell.shifts.append({'start':prev_end,'breaks':[],'end':prev_end})
-            new_shifts=cell.shifts
             
-
-        new_cell=models.cell_info(name=cell.name,
-                                  takt=cell.takt,
-                                  shifts=new_shifts)
-        chk=check_cell_info(new_cell)
-        if len(chk)==0:
-            db.session.add(new_cell)
-            db.session.commit()
-            return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
-        else:
-            return chk
-            
-    elif request.args.get('cmd')=='remove':
-        
-        shift_num=int(request.args.get('shift_num'))
-        cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
-        del cell.shifts[shift_num-1]
-        ncell=models.cell_info(name=cell.name,
-                               takt=cell.takt,
-                               shifts=cell.shifts)
-        db.session.add(ncell)
-        db.session.commit()
-        return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
+        return render_template('cell_settings.html',title='Cell Settings',
+                               cell='American Shotgun',
+                               c=cell)
     
-    
-
-@app.route('/change_break')
-def change_break():
-    if request.args.get('cmd')=='add':        
-        cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
-        shift_num=int(request.args.get('shift_num'))
-        if len(cell.shifts[shift_num-1]['breaks'])<1:
-            prev_end=cell.shifts[shift_num-1]['start']
-        else:
-            prev_end = cell.shifts[shift_num-1]['breaks'][-1][1]
-        cell.shifts[shift_num-1]['breaks'
-                                 ].append([prev_end,
-                                           cell.shifts[shift_num-1]['end']])
-
-        new_cell=models.cell_info(name=cell.name,
-                                  takt=cell.takt,
-                                  shifts=cell.shifts)
-        
-        chk=check_cell_info(new_cell)
-        if len(chk)==0:
-            db.session.add(new_cell)
-            db.session.commit()
-            return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
-        else:
-            return chk
-        
-    elif request.args.get('cmd')=='remove':        
-        shift_num=int(request.args.get('shift_num'))
-        break_num=int(request.args.get('break_num'))
-        cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
-        del cell.shifts[shift_num-1]['breaks'][break_num-1]
-        ncell=models.cell_info(name=cell.name,
-                               takt=cell.takt,
-                               shifts=cell.shifts)
-        db.session.add(ncell)
-        db.session.commit()
-        
-    return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
-
-
-@app.route('/submit_cell_settings', methods=['GET','POST'])
-def submit_cell_settings():
-    if request.method =='Get':
-        return "Submit cell settings data here"
-    if request.method =='POST':
+    elif request.method == 'POST':
         form_data = request.form
+        #get current cell info
         cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
         shft=cell.shifts
         changed=False
         new_shifts=[]
-        
+
+        #check if anything has changed 
         for item in form_data:
             if 'break' in item:
                 shift=int(item[5])
@@ -175,37 +94,119 @@ def submit_cell_settings():
                 
 
         if changed:
-            #update database
-            #need to scrub inputs
+            #create new cell info object
             new_cell = models.cell_info(name=str(form_data['cell_name']),
                                  takt=str(form_data['cell_takt']),
                                  shifts=new_shifts)
-            
+
+            #check if object is valid
             chk=check_cell_info(new_cell)
             if len(chk)==0:
+                #if valid, commit to db
                 db.session.add(new_cell)
                 db.session.commit()
                 return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
             else:
+                #if not valid send errors to browser
                 return chk
         else:
             return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
+
+
+
+@app.route('/change_shift')
+def change_shift():
+    '''
+    rest api point for accepting http gets for adding or removing shifts
+
+    args:
+      cmd: string reading add or remove
+      shift_num: (optional)string containing the shift number, starting at 1
+      
+    '''
+    if request.args.get('cmd')=='add':        
+        cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
+        if len(cell.shifts)<1:
+            new_shifts=[{'start':'00:00','breaks':[],'end':'00:00'}]
+        else:
+            prev_end=cell.shifts[-1]['end']
+            cell.shifts.append({'start':prev_end,'breaks':[],'end':prev_end})
+            new_shifts=cell.shifts
             
+
+        new_cell=models.cell_info(name=cell.name,
+                                  takt=cell.takt,
+                                  shifts=new_shifts)
+        chk=check_cell_info(new_cell)
+        if len(chk)==0:
+            db.session.add(new_cell)
+            db.session.commit()
+            return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
+        else:
+            return chk
+            
+    elif request.args.get('cmd')=='remove':
         
-
+        shift_num=int(request.args.get('shift_num'))
+        cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
+        del cell.shifts[shift_num-1]
+        ncell=models.cell_info(name=cell.name,
+                               takt=cell.takt,
+                               shifts=cell.shifts)
+        db.session.add(ncell)
+        db.session.commit()
+        return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
+    
     
 
-@app.route('/submit_shift_settings', methods=['GET','POST'])
-def submit_shift_settings():
-    if request.method =='Get':
-        return "Submit cell settings data here"
-    if request.method =='POST':
-        for item in request.form:
-            print(item)
-            print(request.form[item])
-        return '200 OK'
+@app.route('/change_break')
+def change_break():
+    '''
+    rest api point for accepting http gets for adding or removing breaks
 
-    
+    args:
+      cmd: string reading add or remove
+      shift_num: string containing the shift number, starting at 1
+      break_num: (optional) string containing the break number to remove
+                  starting at 1
+    '''
+    if request.args.get('cmd')=='add':        
+        cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
+        shift_num=int(request.args.get('shift_num'))
+        if len(cell.shifts[shift_num-1]['breaks'])<1:
+            prev_end=cell.shifts[shift_num-1]['start']
+        else:
+            prev_end = cell.shifts[shift_num-1]['breaks'][-1][1]
+        cell.shifts[shift_num-1]['breaks'
+                                 ].append([prev_end,
+                                           cell.shifts[shift_num-1]['end']])
+
+        new_cell=models.cell_info(name=cell.name,
+                                  takt=cell.takt,
+                                  shifts=cell.shifts)
+        
+        chk=check_cell_info(new_cell)
+        if len(chk)==0:
+            db.session.add(new_cell)
+            db.session.commit()
+            return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
+        else:
+            return chk
+        
+    elif request.args.get('cmd')=='remove':        
+        shift_num=int(request.args.get('shift_num'))
+        break_num=int(request.args.get('break_num'))
+        cell=models.cell_info.query.order_by(models.cell_info.id.desc()).first()
+        del cell.shifts[shift_num-1]['breaks'][break_num-1]
+        ncell=models.cell_info(name=cell.name,
+                               takt=cell.takt,
+                               shifts=cell.shifts)
+        db.session.add(ncell)
+        db.session.commit()
+        
+    return '<meta http-equiv="refresh" content="0; url=/cell_settings" />'
+
+ 
 
 @app.route('/submit_data', methods=['GET','POST'])
 def submit_data():
