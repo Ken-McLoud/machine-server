@@ -2,42 +2,42 @@
 {% block content %}   
   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
       <h2 class="page-header">Cell Info</h2>
-      <form action="#" method="post" name="cell info">
+      <form action="/submit_cell_settings" method="POST" name="cell info">
           <p>
             <h3>
-              Cell Name: {{cell_form.cell_name(size=20, value=c.name)}}
+              Cell Name: <input id="cell_name" name="cell_name" size="20" type="text" value="{{c.name}}">
             </h3>
           </p>
           <p>
             <h3>
-              Takt Time: {{cell_form.cell_takt(size=5,value=c.takt)}} sec.            
+              Takt Time: <input id="cell_takt" name="cell_takt" size="5" type="text" value="{{c.takt}}"> sec.            
             </h3>
           </p>
           <input class="btn btn-primary" type="submit" value="Submit">
-      </form>
+      
+      
       <br>
       <br>
       
       {% for shift in c.shifts: %}
+        {% set shiftloop=loop %}
         <div style="border:5px solid grey; padding:25px; border-radius:25px">
         <h3 class="page-header">
-          Shift #{{c.shifts.index(shift)+1}}
-          <a class="btn btn-primary" href="#" style:"float:right" role="button">
-            Submit
-          </a>
-          <a class="btn btn-danger" href="#" role="button" style="align:right">
+          Shift #{{loop.index}}
+          <input class="btn btn-primary" type="submit" value="Submit">
+          <a href="/change_shift?cmd=remove&shift_num={{loop.index}}" class="btn btn-danger">
             Remove
           </a>
         </h3>
         <p>
           <h4>
-            Start:{{shift_form[c.shifts.index(shift)].start(size=5,value=shift['start'])}}
+            Start:<input id="shift{{loop.index}}_start" name="shift{{loop.index}}_start" size="5" type="text" value="{{shift['start']}}">
           </h4>
         </p>
         <table class="table table-striped">
           <thead>
             <tr>
-              <th><a class="btn btn-info" href="#" role="button">Add New Break</a></th>
+              <th><a class="btn btn-info" href="/change_break?cmd=add&shift_num={{shiftloop.index}}" role="button">Add New Break</a></th>
               <th>Start</th>
               <th>End</th>
               <th></th>
@@ -46,17 +46,17 @@
           <tbody>
             {% for break in shift['breaks']: %}
               <tr>
-                <td><h4>Break #{{shift['breaks'].index(break)+1}}</h4></td>
-                <td>{{brk_info[c.shifts.index(shift)][shift['breaks'].index(break)].start(size=5,value=break[0])}}</td>
-                <td>{{brk_info[c.shifts.index(shift)][shift['breaks'].index(break)].end(size=5,value=break[1])}}</td>
-                <td><a class="btn btn-danger" href="#" role="button">Remove</a></td>
+                <td><h4>Break #{{loop.index}}</h4></td>
+                <td><input id="shift{{shiftloop.index}}_break{{loop.index}}_start" name="shift{{shiftloop.index}}_break{{loop.index}}_start" size="5" type="text" value="{{break[0]}}"></td>
+                <td><input id="shift{{shiftloop.index}}_break{{loop.index}}_end" name="shift{{shiftloop.index}}_break{{loop.index}}_end" size="5" type="text" value="{{break[1]}}"></td>
+                <td><a class="btn btn-danger" href="/change_break?cmd=remove&shift_num={{shiftloop.index}}&break_num={{loop.index}}" role="button">Remove</a></td>
               </tr>
             {% endfor %}        
           </tbody>
         </table>
         <p>
           <h4>
-            End: {{shift_form[c.shifts.index(shift)].end(size=5,value=shift['end'])}}
+            End: <input id="shift{{loop.index}}_end" name="shift{{loop.index}}_end" size="5" type="text" value="{{shift['end']}}">
           </h4>
         </p>
         </div>
@@ -66,7 +66,9 @@
         <br>
         
       {% endfor %}
-      <a class="btn btn-info" href="#" role="button">Add New Shift</a>
-    
+      <a href="/change_shift?cmd=add" class="btn btn-info">
+        Add New Shift
+      </a>
+      </form>  
   </div>
 {%endblock %}
