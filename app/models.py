@@ -15,7 +15,8 @@ class machines(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(256),index=True) #display name
     ident = db.Column(db.String(256),index=True)#computer friendly name
-    
+    ignore = db.Column(db.String(512),index=True)#Tools to ignore
+
     
     def __repr__(self):
         return '< Machine: '+self.name+' >'

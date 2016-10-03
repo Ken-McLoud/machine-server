@@ -100,3 +100,38 @@ def check_cell_info(cell_obj):
 
     
     return '<br>'.join(errs)
+
+
+def check_ignore(usr_str):
+    '''fucntion to check the string submitted by the user for the tools to
+    ignore, should be in 'T1,T2,T3' format
+
+    Args:
+      usr_str: a string that the user put into the form
+
+    Returns:
+      scrubbed: a scrubbed string safe to enter into the db
+    '''
+        
+    usr_list=usr_str.split(',')
+
+    output_list=[]
+    for item in usr_list:
+        tool_num=''
+        for char in item:
+            if char.isdigit():
+                tool_num+=char
+        if len(tool_num)>0:
+            output_list.append('T'+tool_num)
+            
+    scrubbed=','.join(output_list)
+
+    return scrubbed
+    
+    
+if __name__=='__main__':
+    print(check_ignore('T1,T2,T3'))
+    print(check_ignore('t1,t2,t3'))
+    print(check_ignore('tool1, tool2, tool3'))
+    print(check_ignore('this is 4 times the junk'))
+    print(check_ignore('db984fg7rnht 7hn 2'))

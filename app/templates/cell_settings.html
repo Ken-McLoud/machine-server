@@ -25,9 +25,11 @@
         <h3 class="page-header">
           Shift #{{loop.index}}
           <input class="btn btn-primary" type="submit" value="Submit">
-          <a href="/change_shift?cmd=remove&shift_num={{loop.index}}" class="btn btn-danger">
-            Remove
-          </a>
+          {% if loop.index > 1 %}
+            <a href="/change_shift?cmd=remove&shift_num={{loop.index}}" class="btn btn-danger">
+              Remove
+            </a>
+          {% endif %}
         </h3>
         <p>
           <h4>

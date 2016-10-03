@@ -1,8 +1,16 @@
 def check_tools(models,debug):
     from sqlalchemy import desc
     from datetime import datetime
+
+
+    
     #get list of machines
     machs=models.machines.query.all()
+
+    #get ignored toools
+    ignored={}
+    for mach in machs:
+        ignored[mach.name]=mach.ignore.split(',')
     
 
     #get remaining tool life data for each machine
@@ -11,15 +19,20 @@ def check_tools(models,debug):
         latest=models.data_log.query.filter_by(source=mach.ident).filter_by(
             datatype='tool life').order_by(desc(models.data_log.time)).first()
         remaining[mach.name]={}
-
-        tooldata=latest.payload.split('T')
-        for item in tooldata:
-            info =item.split(',')
-            if len(info)>=3:
-                toolnum='T'+info[0]
-                if int(info[2]) != 0:
-                    rem = int(info[2])-int(info[1])
-                    remaining[mach.name][toolnum]= rem
+        has_data=True
+        try:
+            tooldata=latest.payload.split('T')
+        except AttributeError:
+            has_data=True
+        if has_data:
+            for item in tooldata:
+                info =item.split(',')
+                if len(info)>=3:
+                    toolnum='T'+info[0]
+                    if int(info[2]) != 0:
+                        rem = int(info[2])-int(info[1])
+                        remaining[mach.name][toolnum]= rem
+            
     if debug:
         print(remaining)
   
@@ -31,10 +44,13 @@ def check_tools(models,debug):
     #assemble list of work periods as strings
     wrk_prds=[]
     for shift in cell.shifts:
-        wrk_prds.append([shift['start'],shift['breaks'][0][0]])
-        for i in range(len(shift['breaks'])-1):
-            wrk_prds.append([shift['breaks'][i][1],shift['breaks'][i+1][0]])
-        wrk_prds.append([shift['breaks'][-1][1],shift['end']])
+        if len(shift['breaks'])>0:
+            wrk_prds.append([shift['start'],shift['breaks'][0][0]])
+            for i in range(len(shift['breaks'])-1):
+                wrk_prds.append([shift['breaks'][i][1],shift['breaks'][i+1][0]])
+            wrk_prds.append([shift['breaks'][-1][1],shift['end']])
+        else:
+            wrk_prds.append([shift['start'],shift['end']])
     if debug:
         print(wrk_prds)
 
@@ -110,7 +126,9 @@ def check_tools(models,debug):
     for mach in remaining:
         tool_needs=''
         for tool in remaining[mach]:
-            if remaining[mach][tool]<num_parts:
+            not_ignored= not tool in ignored[mach]
+            needs_changing=remaining[mach][tool]<num_parts
+            if needs_changing and not_ignored:
                 if len(tool_needs) != 0:
                     tool_needs+=', '
                 tool_needs+=str(tool)

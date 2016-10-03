@@ -1,26 +1,35 @@
 {% extends "base.html" %}
 {% block content %}   
   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <h1 class="page-header">Settings</h2>
-    <h2 class="section-header">Machines</h2>  
+    <h1 class="page-header">Machine Settings</h2>
+      <form action="/mach_settings" method="POST" name="mach info">
       <div class="table-responsive">
         <table class="table table-striped">
+          <thead>
+            <tr>             
+              <th><h3>Display Name</h2></th>
+              <th><h3>Computer<br>Friendly Name</h3></th>
+              <th><h3>Ignored Tools</h3></th>
+              <th></th>              
+            </tr>
+          </thead>
           <tbody>
             {% for mach in m: %}        
               <tr>
-                <td><h4>{{mach.name}}</h4></td>
+                <td><input id="{{loop.index}}_name" name="{{loop.index}}_name" size="15" type="text" value="{{mach.name}}"></td>
+                <td><input id="{{loop.index}}_ident" name="{{loop.index}}_ident" size="15" type="text" value="{{mach.ident}}"></td>
+                <td><input id="{{loop.index}}_ignore" name="{{loop.index}}_ignore" size="15" type="text" value="{{mach.ignore}}"></td>
                 <td>
-                  <a class="btn btn-info" href="#" role="button">Edit</a>
-                </td>
-                <td>
-                  <a class="btn btn-danger" href="#" role="button">Remove</a>
+                  <a class="btn btn-danger" href="/change_machine?cmd=remove&mach_ident={{mach.ident}}" role="button">Remove</a>
                 </td>
               </tr>
             {% endfor %}                 
           </tbody>
         </table>
-        <a class="btn btn-primary" href="#" role="button">Add New Machine</a>
+        <input class="btn btn-primary" type="submit" value="Submit">
+        <a class="btn btn-info" href="/change_machine?cmd=add" role="button">Add New Machine</a>
       </div>
+      </form>
       &nbsp
       &nbsp
 

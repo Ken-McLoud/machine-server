@@ -4,7 +4,7 @@ from flask import render_template
 from app import db, models
 from datetime import datetime
 from chk_tools import check_tools
-from util_funcs import check_cell_info
+from util_funcs import check_cell_info, check_ignore
 
 
 @app.route('/')
@@ -29,12 +29,67 @@ def logs():
     return render_template('logs.html',title='Logs',
                            cell='American Shotgun')
 
-@app.route('/mach_settings')
+@app.route('/mach_settings',methods=['GET','POST'])
 def mach_settings():
-    machs = models.machines.query.all()   
-    return render_template('mach_settings.html',title='Machine Settings',
-                           cell='American Shotgun',
-                           m=machs)
+    if request.method =='GET':
+        machs = models.machines.query.all()   
+        return render_template('mach_settings.html',title='Machine Settings',
+                               cell='American Shotgun',
+                               m=machs)
+    elif request.method=='POST':
+        form_data = request.form
+        machs=models.machines.query.all()
+        form_dict ={}
+        for item in form_data:
+            if 'ident' in item:
+                num=item[:item.index('_')]
+                form_dict[form_data[item]]={'name':form_data[num+'_name'],
+                                            'ignore':form_data[num+'_ignore']}
+
+        #check if ident from db is not in form, delete from db
+        db_idents=[]
+        for mach in machs:            
+            if not mach.ident in form_dict:                
+                db.session.delete(mach)
+            else:
+                db_idents.append(mach.ident)
+
+        #check if ident from form is not in db, add to db
+        for mach in form_dict:
+            if not mach in db_idents:
+                new_mach=models.machines(name=form_dict[mach]['name'],
+                                         ident=mach,
+                                         ignore=
+                                         check_ignore(form_dict[mach]['ignore']))
+                
+                db.session.add(new_mach)
+            else:
+                #check if an ident's name is not the same ad db, update db
+                for machine in machs:
+                    if machine.ident==mach:
+                        db_name=machine.name
+                        db_ignore=machine.ignore
+                        old_obj=machine
+                        break
+                name_chngd = not db_name==form_dict[mach]['name']
+                ignore_chngd = not db_ignore==form_dict[mach]['ignore']
+                if name_chngd or ignore_chngd:                    
+                    new_mach=models.machines(name=form_dict[mach]['name'],
+                                             ident=mach,
+                                             ignore=
+                                             check_ignore(
+                                                 form_dict[mach]['ignore']))
+                    
+                    db.session.delete(old_obj)
+                    db.session.add(new_mach)               
+
+        db.session.commit()
+
+        return '<meta http-equiv="refresh" content="0; url=/mach_settings" />'
+                
+
+
+
 
 @app.route('/cell_settings', methods=['GET','POST'])
 def cell_settings():
@@ -235,5 +290,39 @@ def submit_data():
             print('duplicate entry')
             
         return '200 OK'
+
+
+
+@app.route('/change_machine')
+def change_machine():
+    '''
+    rest api point for accepting http gets for adding or removing machines
+
+    args:
+      cmd: string reading add or remove
+      mach_ident: (optional)string containing the machine ident    
+    '''
+    
+    if request.args.get('cmd')=='add':        
+        new_mach=models.machines(name='New Machine',
+                                 ident='NEW_MACHINE',
+                                 ignore = '')        
+        
+        db.session.add(new_mach)
+        db.session.commit()
+        return '<meta http-equiv="refresh" content="0; url=/mach_settings" />'
+    
+        
+    elif request.args.get('cmd')=='remove':        
+        mach_ident=request.args.get('mach_ident')    
+        machs=models.machines.query.all()
+        
+        for mach in machs:
+            if mach.ident==mach_ident:
+                db.session.delete(mach)
+            
+        db.session.commit()
+        
+    return '<meta http-equiv="refresh" content="0; url=/mach_settings" />'
 
 
