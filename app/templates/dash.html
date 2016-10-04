@@ -5,23 +5,20 @@
       <div class="table-responsive">
         <table class="table table-striped">
           <thead>
-            <tr>             
-              <th><h3>Machine Name</h3></th>
-              <th><h3>Parts Today</h3></th>
-              <th><h3>Avg Cycle</h3></th>
-              <th><h3>St. Dev.</h3></th>
-              <th><h3>Last Cycle</h3></th>
+            <tr>
+              <th></th>
+              {% for label in labels: %}
+                <th><h3>{{label}}</h3></th>
+              {% endfor %}
             </tr>
           </thead>
           <tbody>
-            {% for mach in m: %}        
+            {% for mach in data: %}        
               <tr>
-                <td><input id="{{loop.index}}_name" name="{{loop.index}}_name" size="15" type="text" value="{{mach.name}}"></td>
-                <td><input id="{{loop.index}}_ident" name="{{loop.index}}_ident" size="15" type="text" value="{{mach.ident}}"></td>
-                <td><input id="{{loop.index}}_ignore" name="{{loop.index}}_ignore" size="15" type="text" value="{{mach.ignore}}"></td>
-                <td>
-                  <a class="btn btn-danger" href="/change_machine?cmd=remove&mach_ident={{mach.ident}}" role="button">Remove</a>
-                </td>
+                <td><h3>{{mach}}</h3></td>
+                {% for label in labels: %}
+                  <td><h3>{{mach[label]}}</h3></td>
+                {% endfor %}
               </tr>
             {% endfor %}                 
           </tbody>

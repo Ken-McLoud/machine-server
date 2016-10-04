@@ -1,11 +1,15 @@
 from app import app
 from flask import request
-from flask import render_template
+from flask import render_template, send_from_directory
 from app import db, models
 from datetime import datetime
 from chk_tools import check_tools
 from util_funcs import check_cell_info, check_ignore
+from dashboard import Cell,Machine
+from build_log import build_log
 
+#initalize cell object for dashboard
+this_cell=Cell()
 
 @app.route('/')
 def index():
@@ -13,9 +17,12 @@ def index():
 
 @app.route('/dash')
 def dash():
+    
+    dat=this_cell.get_data()
+    lbls=['Parts Today','Avg Cycle','St. Dev','Last Cycle']
     return render_template('dash.html',title='Dashboard',
-                           cell='American Shotgun')
-
+                           cell='American Shotgun',
+                           data=dat,labels=lbls)
 
 @app.route('/toolsetter')
 def toolsetter():
@@ -24,12 +31,18 @@ def toolsetter():
                            cell='American Shotgun',
                            needed=check_tools(models,False))
 
-@app.route('/logs')
+@app.route('/logs',methods=['GET','POST'])
 def logs():
-    return render_template('logs.html',title='Logs',
-                           cell='American Shotgun')
+    if request.method =='GET':
+        machs = models.machines.query.all()   
+        return render_template('logs.html',title='Logs',
+                               cell='American Shotgun',machines=machs)
+    elif request.method =='POST':
+        build_log(request.form,app.root_path)
+        return send_from_directory(app.root_path, 'log.csv',as_attachment=True)
 
-@app.route('/mach_settings',methods=['GET','POST'])
+
+@app.route('/mach_settings',)
 def mach_settings():
     if request.method =='GET':
         machs = models.machines.query.all()   
@@ -324,5 +337,9 @@ def change_machine():
         db.session.commit()
         
     return '<meta http-equiv="refresh" content="0; url=/mach_settings" />'
+
+
+
+    
 
 
